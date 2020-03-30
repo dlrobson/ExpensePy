@@ -46,7 +46,7 @@ def find_similar_entries(store, cost):
         expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
     )
     similar_entries = expense_df.loc[
-        (expense_df["store"].str.strip() == store) | (expense_df["cost"] - cost < 0.01)
+        (expense_df["store"].str.strip() == store) & (expense_df["cost"] - cost < 0.01)
     ]
 
     # print(expense_df.loc[expense_df.store == "Walmart"])

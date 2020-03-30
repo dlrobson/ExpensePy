@@ -54,8 +54,8 @@ def find_similar_entries(date, source, amount):
 
     similar_entries = expense_df.loc[
         ((expense_df["date"] < date_after) & (expense_df["date"] > date_before))
-        | (expense_df["source"].str.strip() == source)
-        | (expense_df["amount"] - amount < 0.01)
+        & (expense_df["source"].str.strip() == source)
+        & (expense_df["amount"] - amount < 0.01)
     ]
 
     # print(expense_df.loc[expense_df.store == "Walmart"])
