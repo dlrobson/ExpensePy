@@ -8,22 +8,21 @@ from argparse import ArgumentParser
 
 yes = {"yes", "y", "ye", "ys", "", " y"}
 
-expense_file_loc = "expenses.csv"
+assets_file_loc = "assets.csv"
 
-colnames = ["id", "date", "store", "category", "item", "cost"]
+colnames = ["id", "date", "source", "description", "amount"]
 dtypes = {
     "id": "int64",
     "date": "str",
-    "store": "str",
-    "category": "str",
-    "item": "str",
-    "cost": "float64",
+    "source": "str",
+    "description": "str",
+    "amount": "float64",
 }
 
 
 def get_max_id():
     expense_df = pd.read_csv(
-        expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+        assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
     )
     max_id = expense_df["id"].max()
     return 0 if math.isnan(max_id) else max_id
@@ -31,7 +30,7 @@ def get_max_id():
 
 def print_top_id(num_rows):
     expense_df = pd.read_csv(
-        expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+        assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
     )
 
     # Read in and print the last num_rows of the file.
@@ -41,12 +40,22 @@ def print_top_id(num_rows):
         print(expense_df[expense_df.id > get_max_id() - num_rows])
 
 
-def find_similar_entries(store, cost):
+def find_similar_entries(date, source, amount):
     expense_df = pd.read_csv(
-        expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+        assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
     )
+
+    expense_df["date"] = pd.to_datetime(
+        expense_df["date"].str.strip(), format="%Y-%m-%d"
+    )
+
+    date_before = datetime.combine(date - timedelta(days=14), datetime.min.time())
+    date_after = datetime.combine(date + timedelta(days=14), datetime.min.time())
+
     similar_entries = expense_df.loc[
-        (expense_df["store"].str.strip() == store) | (expense_df["cost"] - cost < 0.01)
+        ((expense_df["date"] < date_after) & (expense_df["date"] > date_before))
+        | (expense_df["source"].str.strip() == source)
+        | (expense_df["amount"] - amount < 0.01)
     ]
 
     # print(expense_df.loc[expense_df.store == "Walmart"])
@@ -57,7 +66,7 @@ if __name__ == "__main__":
 
     # id, date, store, category, item, cost
     PARSER = ArgumentParser(
-        description="Adds an expense to expense.csv. Must be of the correct format"
+        description="Adds an expense to assets.csv. Must be of the correct format"
     )
 
     # date
@@ -70,33 +79,29 @@ if __name__ == "__main__":
         required=True,
     )
 
-    # store of purchase
+    # source of asset
     PARSER.add_argument(
-        "-s", "--store", type=str, help="store of purchase", required=True
+        "-s", "--source", type=str, help="source of asset", required=True
     )
 
-    # category type of purchase
-    PARSER.add_argument(
-        "-t", "--type", type=str, help="category type of purchase", required=True
-    )
+    # description of asset
+    PARSER.add_argument("-t", "--type", type=str, help="type of asset", required=True)
 
-    # store of purchase
-    PARSER.add_argument("-i", "--item", type=str, help="purchased item", required=True)
-
-    # cost
+    # amount of asset
     PARSER.add_argument(
-        "-c", "--cost", type=float, help="total cost of purchase", required=True
+        "-a", "--amount", type=float, help="amount of asset", required=True
     )
 
     args = PARSER.parse_args()
 
     input_date = args.date
-    input_store = args.store.lower()
+    input_source = args.source.lower()
     input_type = args.type.lower()
-    input_item = args.item.lower()
-    input_cost_str = "%.2f" % args.cost
+    input_amount = "%.2f" % args.amount
 
-    similar_entries = find_similar_entries(input_store, float(input_cost_str))
+    similar_entries = find_similar_entries(
+        input_date, input_source, float(input_amount)
+    )
 
     if not similar_entries.empty:
         print("These similar entries already exist:")
@@ -106,38 +111,34 @@ if __name__ == "__main__":
     print(
         "Date: ",
         input_date,
-        "\tStore: ",
-        input_store,
-        "\tCategory: ",
+        "\tSource: ",
+        input_source,
+        "\tType: ",
         input_type,
-        "\tItem: ",
-        input_item,
-        "\tCost: ",
-        input_cost_str,
+        "\tAmount: ",
+        input_amount,
     )
 
-    print("Add to expense book? (y/n)")
+    print("Add to asset book? (y/n)")
 
     choice = input().lower()
     if choice in yes:
-        print("Row added to " + expense_file_loc)
+        print("Row added to " + assets_file_loc)
         next_csv_row = (
             str(get_max_id() + 1)
             + ", "
             + input_date.strftime("%Y-%m-%d")
             + ", "
-            + input_store
+            + input_source
             + ", "
-            + args.type
+            + input_type
             + ", "
-            + input_item
-            + ", "
-            + input_cost_str
+            + input_amount
             + "\n"
         )
 
         # 'a' appends the newline to the end of the file
-        with open(expense_file_loc, "a") as csv_file:
+        with open(assets_file_loc, "a") as csv_file:
             csv_file.write(next_csv_row)
 
         print_top_id(5)
