@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import pandas as pd
 import csv
-import math
 import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
+from helper_functions import get_max_id, print_top_id
 
 with open("config.json", "r") as f:
     config = json.load(f)
@@ -21,26 +21,6 @@ dtypes = {
     "item": "str",
     "cost": "float64",
 }
-
-
-def get_max_id():
-    expense_df = pd.read_csv(
-        expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-    )
-    max_id = expense_df["id"].max()
-    return 0 if math.isnan(max_id) else max_id
-
-
-def print_top_id(num_rows):
-    expense_df = pd.read_csv(
-        expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-    )
-
-    # Read in and print the last num_rows of the file.
-    if len(expense_df.index < 5):
-        print(expense_df)
-    else:
-        print(expense_df[expense_df.id > get_max_id() - num_rows])
 
 
 def find_similar_entries(store, cost):
@@ -96,6 +76,7 @@ if __name__ == "__main__":
     input_store = args.store.lower()
     input_type = args.type.lower()
     input_item = args.item.lower()
+    input_cost = args.cost
     input_cost_str = "%.2f" % args.cost
 
     similar_entries = find_similar_entries(input_store, float(input_cost_str))
@@ -118,19 +99,26 @@ if __name__ == "__main__":
         input_cost_str,
     )
 
-    print("Add to expense book? (y/n)")
+    print("\nAdd to expense book? (y/n)")
 
     choice = input().lower()
     if choice in yes:
-        print("Row added to " + expense_file_loc)
+
+        expense_df = pd.read_csv(
+            expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+        )
+
+        next_id = get_max_id(expense_df) + 1
+        input_date_str = input_date.strftime("%Y-%m-%d")
+
         next_csv_row = (
-            str(get_max_id() + 1)
+            str(next_id)
             + ", "
-            + input_date.strftime("%Y-%m-%d")
+            + input_date_str
             + ", "
             + input_store
             + ", "
-            + args.type
+            + input_type
             + ", "
             + input_item
             + ", "
@@ -142,7 +130,12 @@ if __name__ == "__main__":
         with open(expense_file_loc, "a") as csv_file:
             csv_file.write(next_csv_row)
 
-        print_top_id(5)
+        print("\nRow added to " + expense_file_loc)
+
+        # Append a row to assets_df to avoid re-reading it
+        row = [next_id, input_date_str, input_store, input_type, input_item, input_cost]
+        expense_df = expense_df.append(pd.DataFrame([row], columns=expense_df.columns))
+        print_top_id(expense_df, 5)
 
     else:
         print("Entry was not added.")

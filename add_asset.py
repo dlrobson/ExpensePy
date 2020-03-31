@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import pandas as pd
 import csv
-import math
 import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
+from helper_functions import get_max_id, print_top_id
 
 with open("config.json", "r") as f:
     config = json.load(f)
@@ -24,45 +24,23 @@ dtypes = {
 }
 
 
-def get_max_id():
-    expense_df = pd.read_csv(
-        assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-    )
-    max_id = expense_df["id"].max()
-    return 0 if math.isnan(max_id) else max_id
-
-
-def print_top_id(num_rows):
-    expense_df = pd.read_csv(
-        assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-    )
-
-    # Read in and print the last num_rows of the file.
-    if len(expense_df.index < 5):
-        print(expense_df)
-    else:
-        print(expense_df[expense_df.id > get_max_id() - num_rows])
-
-
 def find_similar_entries(date, source, amount):
-    expense_df = pd.read_csv(
+    assets_df = pd.read_csv(
         assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
     )
 
-    expense_df["date"] = pd.to_datetime(
-        expense_df["date"].str.strip(), format="%Y-%m-%d"
-    )
+    assets_df["date"] = pd.to_datetime(assets_df["date"].str.strip(), format="%Y-%m-%d")
 
     date_before = datetime.combine(date - timedelta(days=15), datetime.min.time())
     date_after = datetime.combine(date + timedelta(days=15), datetime.min.time())
 
-    similar_entries = expense_df.loc[
-        ((expense_df["date"] < date_after) & (expense_df["date"] > date_before))
-        & (expense_df["source"].str.strip() == source)
-        & (expense_df["amount"] - amount < 0.01)
+    similar_entries = assets_df.loc[
+        ((assets_df["date"] < date_after) & (assets_df["date"] > date_before))
+        & (assets_df["source"].str.strip() == source)
+        & (assets_df["amount"] - amount < 0.01)
     ]
 
-    # print(expense_df.loc[expense_df.store == "Walmart"])
+    # print(assets_df.loc[assets_df.store == "Walmart"])
     return similar_entries
 
 
@@ -123,15 +101,22 @@ if __name__ == "__main__":
         input_amount,
     )
 
-    print("Add to asset book? (y/n)")
+    print("\nAdd to asset book? (y/n)")
 
     choice = input().lower()
     if choice in yes:
-        print("Row added to " + assets_file_loc)
+
+        assets_df = pd.read_csv(
+            assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+        )
+
+        next_id = get_max_id(assets_df) + 1
+        input_date_str = input_date.strftime("%Y-%m-%d")
+
         next_csv_row = (
-            str(get_max_id() + 1)
+            str(next_id)
             + ", "
-            + input_date.strftime("%Y-%m-%d")
+            + input_date_str
             + ", "
             + input_source
             + ", "
@@ -145,7 +130,12 @@ if __name__ == "__main__":
         with open(assets_file_loc, "a") as csv_file:
             csv_file.write(next_csv_row)
 
-        print_top_id(5)
+        print("\nRow added to " + assets_file_loc)
+
+        # Append a row to assets_df to avoid re-reading it
+        row = [next_id, input_date_str, input_source, input_type, input_amount]
+        assets_df = assets_df.append(pd.DataFrame([row], columns=assets_df.columns))
+        print_top_id(assets_df, 5)
 
     else:
         print("Entry was not added.")
