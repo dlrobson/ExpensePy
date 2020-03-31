@@ -20,35 +20,43 @@ def add_category(new_category, budget_val, date):
 
     # Month or year does not exist
     try:
-        if new_category in budget[str(date.year)][str(date.month)]:
+        if new_category in budget[str(date.year)][str(date.month)]["categories"]:
             print(
                 "Input category already exists. The category value will be updated with the new budget."
             )
 
         # Month exists, but category does not
-        budget[str(date.year)][str(date.month)][new_category] = budget_val
+        budget[str(date.year)][str(date.month)]["categories"][new_category] = budget_val
 
     except:
 
         new_key = {}
         new_key[new_category] = budget_val
 
+        month_data = {}
+        month_data["categories"] = new_key
+        month_data["month"] = date.month
+
         # Year does not exist
         if str(date.year) not in budget:
 
-            month = {}
-            month[str(date.month)] = new_key
+            # Add the year to the json file
+            year_data = {}
+            year_data[str(date.month)] = month_data
 
-            budget[str(date.year)] = month
+            budget[str(date.year)] = year_data
+
         # Year exists, but not the month
         else:
-            budget[str(date.year)][str(date.month)] = new_key
+
+            # Add the month to the json year
+            budget[str(date.year)][str(date.month)] = month_data
 
     with open(budget_file_loc, "w") as f:
         f.write(json.dumps(budget, sort_keys=True, indent=4, separators=(",", ": ")))
 
     # Print out new budget for that month
-    print(date, ":", budget[str(date.year)][str(date.month)])
+    print(date, ":", budget[str(date.year)][str(date.month)]["categories"])
 
 
 # TODO: a (y/n)
@@ -59,13 +67,13 @@ def remove_category(removed_category, date):
 
     try:
         # Remove the category from the dictionary
-        budget[str(date.year)][str(date.month)].pop(removed_category)
+        budget[str(date.year)][str(date.month)]["categories"].pop(removed_category)
 
         # Print the updated category list for the user
         print(date, ":", budget[str(date.year)][str(date.month)])
 
         # if the month is now empty of categories, remove the month
-        if not budget[str(date.year)][str(date.month)]:
+        if not budget[str(date.year)][str(date.month)]["categories"]:
             budget[str(date.year)].pop(str(date.month))
 
             # Remove the year if it's empty
