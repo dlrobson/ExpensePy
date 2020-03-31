@@ -3,32 +3,85 @@ import json
 from argparse import ArgumentParser
 from datetime import date, timedelta, datetime
 
-# Loads .json file settings
+# Loads config.json file settings
 with open("config.json", "r") as f:
     config = json.load(f)
 
-# Sets up expenses df
 budget_file_loc = config["budget_file_location"]
-
-# remove duplicate months with same budget
-def sort_budget_json_file():
-    print(budget_file_loc)
-    pass
+# Loads budget json file
+with open(budget_file_loc, "r") as f:
+    budget = json.load(f)
 
 
-# if month doesn't exist, add month entry
-# if year doesn't exist, add year entry
 # Add budget type
-def add_category(added_category, date):
-    pass
+def add_category(new_category, budget_val, date):
+
+    new_category = new_category.lower()
+
+    # Month or year does not exist
+    try:
+        if new_category in budget[str(date.year)][str(date.month)]:
+            print(
+                "Input category already exists. The category value will be updated with the new budget."
+            )
+
+        # Month exists, but category does not
+        budget[str(date.year)][str(date.month)][new_category] = budget_val
+
+    except:
+
+        new_key = {}
+        new_key[new_category] = budget_val
+
+        # Year does not exist
+        if str(date.year) not in budget:
+
+            month = {}
+            month[str(date.month)] = new_key
+
+            budget[str(date.year)] = month
+        # Year exists, but not the month
+        else:
+            budget[str(date.year)][str(date.month)] = new_key
+
+    with open(budget_file_loc, "w") as f:
+        f.write(json.dumps(budget, sort_keys=True, indent=4, separators=(",", ": ")))
+
+    # Print out new budget for that month
+    print(date, ":", budget[str(date.year)][str(date.month)])
 
 
-def edit_category_budget(category, date):
-    pass
-
-
+# TODO: a (y/n)
 # Delete category
 def remove_category(removed_category, date):
+
+    removed_category = removed_category.lower()
+
+    try:
+        # Remove the category from the dictionary
+        budget[str(date.year)][str(date.month)].pop(removed_category)
+
+        # Print the updated category list for the user
+        print(date, ":", budget[str(date.year)][str(date.month)])
+
+        # if the month is now empty of categories, remove the month
+        if not budget[str(date.year)][str(date.month)]:
+            budget[str(date.year)].pop(str(date.month))
+
+            # Remove the year if it's empty
+            if not budget[str(date.year)]:
+                budget.pop(str(date.year))
+
+        with open(budget_file_loc, "w") as f:
+            f.write(
+                json.dumps(budget, sort_keys=True, indent=4, separators=(",", ": "))
+            )
+
+    except:
+        print("Category does not exist")
+
+
+def remove_month(date):
     pass
 
 
@@ -36,7 +89,16 @@ def view_month_budget(month):
     pass
 
 
+# Questionable
 def view_budget_histories():
+    pass
+
+
+def month_budget_report(month):
+    pass
+
+
+def annual_budget_report(year):
     pass
 
 
@@ -83,6 +145,6 @@ if __name__ == "__main__":
         PARSER.error("--add requires --budget")
 
     if args.add:
-        add_category(args.add, args.date)
+        add_category(args.add, args.budget, args.date)
     elif args.remove:
         remove_category(args.remove, args.date)
