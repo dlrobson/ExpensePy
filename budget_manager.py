@@ -59,7 +59,6 @@ def add_category(new_category, budget_val, date):
     print(date, ":", budget[str(date.year)][str(date.month)]["categories"])
 
 
-# TODO: a (y/n)
 # Delete category
 def remove_category(removed_category, date):
 
@@ -113,21 +112,19 @@ def annual_budget_report(year):
 # TODO: choose a date range to apply that budget
 if __name__ == "__main__":
 
-    PARSER = ArgumentParser(
-        description="Adds an expense to income.csv. Must be of the correct format",
+    PARSER = ArgumentParser(description="budget.json manager.",)
+
+    # To add a category type
+    PARSER.add_argument(
+        "-a",
+        "--add",
+        type=str,
+        help="add/edit current budget rules. Supply a -b and -d.",
     )
 
     # To add a category type
     PARSER.add_argument(
-        "-a", "--add", type=str, help="category to add to the current budget rules",
-    )
-
-    # To add a category type
-    PARSER.add_argument(
-        "-b",
-        "--budget",
-        type=float,
-        help="category to add to the current budget rules",
+        "-b", "--budget", type=float, help="adjusted budget value",
     )
 
     # To remove a category type
@@ -142,6 +139,15 @@ if __name__ == "__main__":
     PARSER.add_argument(
         "-d",
         "--date",
+        default=date.today().replace(day=1),
+        type=lambda d: datetime.strptime(d, "%Y%m").date(),
+        help="Date of purchase in the format yyyymm. If no date is provided, then the default is today's month.",
+    )
+
+    # date to apply adjusted budget settings
+    PARSER.add_argument(
+        "-rmon",
+        "--removemonth",
         default=date.today().replace(day=1),
         type=lambda d: datetime.strptime(d, "%Y%m").date(),
         help="Date of purchase in the format yyyymm. If no date is provided, then the default is today's month.",
