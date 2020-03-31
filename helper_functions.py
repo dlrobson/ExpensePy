@@ -1,11 +1,25 @@
 import math
+import os
 import pandas as pd
 from datetime import date, timedelta, datetime
 
 
+def check_csv_exists_and_create(file_loc, col_names):
+    # Check if file exists. If not, create it
+    if not os.path.exists(file_loc):
+        # w+ open the file for updating, and truncates
+        f = open(file_loc, "w+")
+        for key in col_names:
+            f.write(key)
+            if key is not col_names[-1]:
+                f.write(",")
+        f.write("\n")
+        f.close()
+
+
 def get_max_id(df):
     max_id = df["id"].max()
-    return 0 if math.isnan(max_id) else max_id
+    return -1 if math.isnan(max_id) else max_id
 
 
 def print_top_id(df, num_rows):
@@ -24,20 +38,20 @@ def find_similar_expense_entries(expense_df, store, cost):
     return similar_entries
 
 
-def find_similar_asset_entries(assets_df, date, source, amount):
+def find_similar_income_entries(income_df, date, source, amount):
 
     # Converts the col to datetime to be queried
-    assets_df["date"] = pd.to_datetime(assets_df["date"].str.strip(), format="%Y-%m-%d")
+    income_df["date"] = pd.to_datetime(income_df["date"].str.strip(), format="%Y-%m-%d")
 
     # Similar dates are defined as days 2 weeks before or after the entered date
     date_before = datetime.combine(date - timedelta(days=15), datetime.min.time())
     date_after = datetime.combine(date + timedelta(days=15), datetime.min.time())
 
-    similar_entries = assets_df.loc[
-        ((assets_df["date"] < date_after) & (assets_df["date"] > date_before))
-        & (assets_df["source"].str.strip() == source)
-        & (assets_df["amount"] - amount < 0.01)
+    similar_entries = income_df.loc[
+        ((income_df["date"] < date_after) & (income_df["date"] > date_before))
+        & (income_df["source"].str.strip() == source)
+        & (income_df["amount"] - amount < 0.01)
     ]
     # Converts the date col to be a string again
-    assets_df["date"] = assets_df["date"].dt.strftime("%Y-%m-%d")
+    income_df["date"] = income_df["date"].dt.strftime("%Y-%m-%d")
     return similar_entries

@@ -1,6 +1,6 @@
 {
     "expenses_file_location": "expenses.csv",
-    "assets_file_location": "assets.csv",
+    "income_file_location": "income.csv",
     "yes": [
         "yes",
         "y",

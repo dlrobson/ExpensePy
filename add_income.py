@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 import pandas as pd
+import os
 import csv
 import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
-from helper_functions import get_max_id, print_top_id, find_similar_asset_entries
+from helper_functions import (
+    get_max_id,
+    print_top_id,
+    find_similar_income_entries,
+    check_csv_exists_and_create,
+)
 
 # Loads .json file settings
 with open("config.json", "r") as f:
     config = json.load(f)
 
-# Sets up assets df
-assets_file_loc = config["assets_file_location"]
-colnames = ["id", "date", "source", "description", "amount"]
+# Sets up income df
+income_file_loc = config["income_file_location"]
+print(income_file_loc)
+col_names = ["id", "date", "source", "description", "amount"]
 dtypes = {
     "id": "int64",
     "date": "str",
@@ -20,8 +27,11 @@ dtypes = {
     "description": "str",
     "amount": "float64",
 }
-assets_df = pd.read_csv(
-    assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+
+check_csv_exists_and_create(income_file_loc, col_names)
+
+income_df = pd.read_csv(
+    income_file_loc, dtype=dtypes, names=col_names, header=None, skiprows=1
 )
 
 
@@ -29,7 +39,7 @@ if __name__ == "__main__":
 
     # id, date, store, category, item, cost
     PARSER = ArgumentParser(
-        description="Adds an expense to assets.csv. Must be of the correct format"
+        description="Adds an expense to income.csv. Must be of the correct format"
     )
 
     # date
@@ -42,17 +52,17 @@ if __name__ == "__main__":
         required=True,
     )
 
-    # source of asset
+    # source of income
     PARSER.add_argument(
-        "-s", "--source", type=str, help="source of asset", required=True
+        "-s", "--source", type=str, help="source of income", required=True
     )
 
-    # description of asset
-    PARSER.add_argument("-t", "--type", type=str, help="type of asset", required=True)
+    # description of income
+    PARSER.add_argument("-t", "--type", type=str, help="type of income", required=True)
 
-    # amount of asset
+    # amount of income
     PARSER.add_argument(
-        "-a", "--amount", type=float, help="amount of asset", required=True
+        "-a", "--amount", type=float, help="amount of income", required=True
     )
 
     args = PARSER.parse_args()
@@ -62,8 +72,8 @@ if __name__ == "__main__":
     input_type = args.type.lower()
     input_amount = "%.2f" % args.amount
 
-    similar_entries = find_similar_asset_entries(
-        assets_df, input_date, input_source, float(input_amount)
+    similar_entries = find_similar_income_entries(
+        income_df, input_date, input_source, float(input_amount)
     )
 
     if not similar_entries.empty:
@@ -82,12 +92,12 @@ if __name__ == "__main__":
         input_amount,
     )
 
-    print("\nAdd to asset book? (y/n)")
+    print("\nAdd to income book? (y/n)")
 
     choice = input().lower()
     if choice in config["yes"]:
 
-        next_id = get_max_id(assets_df) + 1
+        next_id = get_max_id(income_df) + 1
         input_date_str = input_date.strftime("%Y-%m-%d")
 
         next_csv_row = (
@@ -104,15 +114,15 @@ if __name__ == "__main__":
         )
 
         # 'a' appends the newline to the end of the file
-        with open(assets_file_loc, "a") as csv_file:
+        with open(income_file_loc, "a") as csv_file:
             csv_file.write(next_csv_row)
 
-        print("\nRow added to " + assets_file_loc)
+        print("\nRow added to " + income_file_loc)
 
-        # Append a row to assets_df to avoid re-reading it
+        # Append a row to income_df to avoid re-reading it
         row = [next_id, input_date, input_source, input_type, input_amount]
-        assets_df = assets_df.append(pd.DataFrame([row], columns=assets_df.columns))
-        print_top_id(assets_df, 5)
+        income_df = income_df.append(pd.DataFrame([row], columns=income_df.columns))
+        print_top_id(income_df, 5)
 
     else:
         print("Entry was not added.")

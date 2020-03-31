@@ -4,7 +4,12 @@ import csv
 import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
-from helper_functions import get_max_id, print_top_id, find_similar_expense_entries
+from helper_functions import (
+    get_max_id,
+    print_top_id,
+    find_similar_expense_entries,
+    check_csv_exists_and_create,
+)
 
 # Loads .json file settings
 with open("config.json", "r") as f:
@@ -12,7 +17,7 @@ with open("config.json", "r") as f:
 
 # Sets up expenses df
 expense_file_loc = config["expenses_file_location"]
-colnames = ["id", "date", "store", "category", "item", "cost"]
+col_names = ["id", "date", "store", "category", "item", "cost"]
 dtypes = {
     "id": "int64",
     "date": "str",
@@ -21,8 +26,11 @@ dtypes = {
     "item": "str",
     "cost": "float64",
 }
+
+check_csv_exists_and_create(expense_file_loc, col_names)
+
 expense_df = pd.read_csv(
-    expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+    expense_file_loc, dtype=dtypes, names=col_names, header=None, skiprows=1
 )
 
 if __name__ == "__main__":
@@ -120,7 +128,7 @@ if __name__ == "__main__":
 
         print("\nRow added to " + expense_file_loc)
 
-        # Append a row to assets_df to avoid re-reading it
+        # Append a row to expense_df to avoid re-reading it
         row = [next_id, input_date_str, input_store, input_type, input_item, input_cost]
         expense_df = expense_df.append(pd.DataFrame([row], columns=expense_df.columns))
         print_top_id(expense_df, 5)
