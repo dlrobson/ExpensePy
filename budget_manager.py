@@ -10,7 +10,7 @@ with open("config.json", "r") as f:
 # Sets up expenses df
 budget_file_loc = config["budget_file_location"]
 
-
+# remove duplicate months with same budget
 def sort_budget_json_file():
     print(budget_file_loc)
     pass
@@ -40,6 +40,7 @@ def view_budget_histories():
     pass
 
 
+# TODO: choose a date range to apply that budget
 if __name__ == "__main__":
 
     PARSER = ArgumentParser(
