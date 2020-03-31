@@ -1,6 +1,7 @@
 {
     "expenses_file_location": "expenses.csv",
     "income_file_location": "income.csv",
+    "budget_file_location": "budget.json",
     "yes": [
         "yes",
         "y",

@@ -1,0 +1,13 @@
+{
+    "2020": [
+        {
+            "month": "3",
+            "categories": {
+                "car": 100,
+                "transportation": 100,
+                "food": 200,
+                "rent": 500
+            }
+        }
+    ],
+}

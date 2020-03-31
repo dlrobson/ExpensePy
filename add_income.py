@@ -39,14 +39,14 @@ if __name__ == "__main__":
 
     # id, date, store, category, item, cost
     PARSER = ArgumentParser(
-        description="Adds an expense to income.csv. Must be of the correct format"
+        description="Adds an income to income.csv. Must be of the correct format"
     )
 
     # date
     PARSER.add_argument(
         "-d",
         "--date",
-        default=date.today() - timedelta(days=1),
+        default=date.today(),
         type=lambda d: datetime.strptime(d, "%Y%m%d").date(),
         help="Date of purchase in the format yyyymmdd",
         required=True,

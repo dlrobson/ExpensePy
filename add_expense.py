@@ -44,7 +44,7 @@ if __name__ == "__main__":
     PARSER.add_argument(
         "-d",
         "--date",
-        default=date.today() - timedelta(days=1),
+        default=date.today(),
         type=lambda d: datetime.strptime(d, "%Y%m%d").date(),
         help="Date of purchase in the format yyyymmdd",
         required=True,

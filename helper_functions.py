@@ -55,3 +55,9 @@ def find_similar_income_entries(income_df, date, source, amount):
     # Converts the date col to be a string again
     income_df["date"] = income_df["date"].dt.strftime("%Y-%m-%d")
     return similar_entries
+
+
+# https://www.datacamp.com/community/tutorials/fuzzy-string-python
+# https://towardsdatascience.com/fuzzy-string-matching-in-python-68f240d910fe
+def fuzzy_match(input_str, list):
+    pass
