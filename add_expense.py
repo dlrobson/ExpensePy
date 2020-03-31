@@ -4,14 +4,14 @@ import csv
 import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
-from helper_functions import get_max_id, print_top_id
+from helper_functions import get_max_id, print_top_id, find_similar_expense_entries
 
+# Loads .json file settings
 with open("config.json", "r") as f:
     config = json.load(f)
 
+# Sets up expenses df
 expense_file_loc = config["expenses_file_location"]
-yes = config["yes"]
-
 colnames = ["id", "date", "store", "category", "item", "cost"]
 dtypes = {
     "id": "int64",
@@ -21,19 +21,9 @@ dtypes = {
     "item": "str",
     "cost": "float64",
 }
-
-
-def find_similar_entries(store, cost):
-    expense_df = pd.read_csv(
-        expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-    )
-    similar_entries = expense_df.loc[
-        (expense_df["store"].str.strip() == store) & (expense_df["cost"] - cost < 0.01)
-    ]
-
-    # print(expense_df.loc[expense_df.store == "Walmart"])
-    return similar_entries
-
+expense_df = pd.read_csv(
+    expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+)
 
 if __name__ == "__main__":
 
@@ -79,7 +69,9 @@ if __name__ == "__main__":
     input_cost = args.cost
     input_cost_str = "%.2f" % args.cost
 
-    similar_entries = find_similar_entries(input_store, float(input_cost_str))
+    similar_entries = find_similar_expense_entries(
+        expense_df, input_store, float(input_cost_str)
+    )
 
     if not similar_entries.empty:
         print("These similar entries already exist:")
@@ -102,11 +94,7 @@ if __name__ == "__main__":
     print("\nAdd to expense book? (y/n)")
 
     choice = input().lower()
-    if choice in yes:
-
-        expense_df = pd.read_csv(
-            expense_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-        )
+    if choice in config["yes"]:
 
         next_id = get_max_id(expense_df) + 1
         input_date_str = input_date.strftime("%Y-%m-%d")

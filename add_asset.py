@@ -4,16 +4,14 @@ import csv
 import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
-from helper_functions import get_max_id, print_top_id
+from helper_functions import get_max_id, print_top_id, find_similar_asset_entries
 
+# Loads .json file settings
 with open("config.json", "r") as f:
     config = json.load(f)
 
+# Sets up assets df
 assets_file_loc = config["assets_file_location"]
-yes = config["yes"]
-
-# assets_file_loc = "assets.csv"
-
 colnames = ["id", "date", "source", "description", "amount"]
 dtypes = {
     "id": "int64",
@@ -22,26 +20,9 @@ dtypes = {
     "description": "str",
     "amount": "float64",
 }
-
-
-def find_similar_entries(date, source, amount):
-    assets_df = pd.read_csv(
-        assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-    )
-
-    assets_df["date"] = pd.to_datetime(assets_df["date"].str.strip(), format="%Y-%m-%d")
-
-    date_before = datetime.combine(date - timedelta(days=15), datetime.min.time())
-    date_after = datetime.combine(date + timedelta(days=15), datetime.min.time())
-
-    similar_entries = assets_df.loc[
-        ((assets_df["date"] < date_after) & (assets_df["date"] > date_before))
-        & (assets_df["source"].str.strip() == source)
-        & (assets_df["amount"] - amount < 0.01)
-    ]
-
-    # print(assets_df.loc[assets_df.store == "Walmart"])
-    return similar_entries
+assets_df = pd.read_csv(
+    assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
+)
 
 
 if __name__ == "__main__":
@@ -81,8 +62,8 @@ if __name__ == "__main__":
     input_type = args.type.lower()
     input_amount = "%.2f" % args.amount
 
-    similar_entries = find_similar_entries(
-        input_date, input_source, float(input_amount)
+    similar_entries = find_similar_asset_entries(
+        assets_df, input_date, input_source, float(input_amount)
     )
 
     if not similar_entries.empty:
@@ -104,11 +85,7 @@ if __name__ == "__main__":
     print("\nAdd to asset book? (y/n)")
 
     choice = input().lower()
-    if choice in yes:
-
-        assets_df = pd.read_csv(
-            assets_file_loc, dtype=dtypes, names=colnames, header=None, skiprows=1
-        )
+    if choice in config["yes"]:
 
         next_id = get_max_id(assets_df) + 1
         input_date_str = input_date.strftime("%Y-%m-%d")
@@ -133,7 +110,7 @@ if __name__ == "__main__":
         print("\nRow added to " + assets_file_loc)
 
         # Append a row to assets_df to avoid re-reading it
-        row = [next_id, input_date_str, input_source, input_type, input_amount]
+        row = [next_id, input_date, input_source, input_type, input_amount]
         assets_df = assets_df.append(pd.DataFrame([row], columns=assets_df.columns))
         print_top_id(assets_df, 5)
 
