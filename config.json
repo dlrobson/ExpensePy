@@ -1,0 +1,12 @@
+{
+    "expenses_file_location": "expenses.csv",
+    "assets_file_location": "assets.csv",
+    "yes": [
+        "yes",
+        "y",
+        "ye",
+        "ys",
+        "",
+        " y"
+    ]
+}

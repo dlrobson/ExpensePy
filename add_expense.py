@@ -2,13 +2,15 @@
 import pandas as pd
 import csv
 import math
-
+import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
 
-yes = {"yes", "y", "ye", "ys", "", " y"}
+with open("config.json", "r") as f:
+    config = json.load(f)
 
-expense_file_loc = "expenses.csv"
+expense_file_loc = config["expenses_file_location"]
+yes = config["yes"]
 
 colnames = ["id", "date", "store", "category", "item", "cost"]
 dtypes = {

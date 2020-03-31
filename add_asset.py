@@ -2,13 +2,17 @@
 import pandas as pd
 import csv
 import math
-
+import json
 from datetime import date, timedelta, datetime
 from argparse import ArgumentParser
 
-yes = {"yes", "y", "ye", "ys", "", " y"}
+with open("config.json", "r") as f:
+    config = json.load(f)
 
-assets_file_loc = "assets.csv"
+assets_file_loc = config["assets_file_location"]
+yes = config["yes"]
+
+# assets_file_loc = "assets.csv"
 
 colnames = ["id", "date", "source", "description", "amount"]
 dtypes = {
@@ -49,8 +53,8 @@ def find_similar_entries(date, source, amount):
         expense_df["date"].str.strip(), format="%Y-%m-%d"
     )
 
-    date_before = datetime.combine(date - timedelta(days=14), datetime.min.time())
-    date_after = datetime.combine(date + timedelta(days=14), datetime.min.time())
+    date_before = datetime.combine(date - timedelta(days=15), datetime.min.time())
+    date_after = datetime.combine(date + timedelta(days=15), datetime.min.time())
 
     similar_entries = expense_df.loc[
         ((expense_df["date"] < date_after) & (expense_df["date"] > date_before))
