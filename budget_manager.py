@@ -65,7 +65,15 @@ def add_category(new_category, budget_val, date):
         f.write(json.dumps(budget, sort_keys=True, indent=4, separators=(",", ": ")))
 
     # Print out new budget for that month
-    print(date, ":", budget[str(date.year)][str(date.month)]["categories"])
+    print(
+        date,
+        ":",
+        json.dumps(
+            budget[str(date.year)][str(date.month)]["categories"],
+            indent=4,
+            sort_keys=True,
+        ),
+    )
 
 
 # Delete category
@@ -78,7 +86,13 @@ def remove_category(removed_category, date):
         budget[str(date.year)][str(date.month)]["categories"].pop(removed_category)
 
         # Print the updated category list for the user
-        print(date, ":", budget[str(date.year)][str(date.month)])
+        print(
+            date,
+            ":",
+            json.dumps(
+                budget[str(date.year)][str(date.month)], indent=4, sort_keys=True,
+            ),
+        )
 
         # if the month is now empty of categories, remove the month
         if not budget[str(date.year)][str(date.month)]["categories"]:
@@ -115,14 +129,22 @@ def remove_month(date):
 
 def view_month_budget(date):
     try:
-        print(budget[str(date.year)][str(date.month)]["categories"])
+        print(
+            date,
+            ":",
+            json.dumps(
+                budget[str(date.year)][str(date.month)]["categories"],
+                indent=4,
+                sort_keys=True,
+            ),
+        )
     except:
         print("Month-year pair budget does not exist in " + budget_file_loc)
 
 
 # Questionable
 def view_budget_history():
-    print(budget)
+    print(json.dumps(budget, indent=4, sort_keys=True))
 
 
 def month_budget_report(month):
