@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 from argparse import ArgumentParser
 from datetime import date, timedelta, datetime
 
@@ -8,6 +9,14 @@ with open("config.json", "r") as f:
     config = json.load(f)
 
 budget_file_loc = config["budget_file_location"]
+
+# Check if file exists. If not, create it
+if not os.path.exists(budget_file_loc):
+    # w+ open the file for updating, and truncates
+    f = open(budget_file_loc, "w+")
+    f.write("{}")
+    f.close()
+
 # Loads budget json file
 with open(budget_file_loc, "r") as f:
     budget = json.load(f)
