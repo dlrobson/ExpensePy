@@ -3,6 +3,7 @@ import json
 import os
 from argparse import ArgumentParser
 from datetime import date, timedelta, datetime
+from helper_functions import find_budget_month
 
 # Loads config.json file settings
 with open("config.json", "r") as f:
@@ -44,7 +45,6 @@ def add_category(new_category, budget_val, date):
 
         month_data = {}
         month_data["categories"] = new_key
-        month_data["month"] = date.month
 
         # Year does not exist
         if str(date.year) not in budget:
@@ -155,6 +155,10 @@ def annual_budget_report(year):
     pass
 
 
+def copy_month(date_to_copy_to):
+    find_budget_month(budget_file_loc, date_to_copy_to)
+
+
 # TODO: choose a date range to apply that budget
 if __name__ == "__main__":
 
@@ -204,6 +208,14 @@ if __name__ == "__main__":
 
     # date to apply adjusted budget settings
     PARSER.add_argument(
+        "-c",
+        "--copymonth",
+        type=lambda d: datetime.strptime(d, "%Y%m").date(),
+        help="Format yyyymm. Copies the previous budget to the month entered",
+    )
+
+    # date to apply adjusted budget settings
+    PARSER.add_argument(
         "-pmon",
         "--printmonth",
         type=lambda d: datetime.strptime(d, "%Y%m").date(),
@@ -217,6 +229,9 @@ if __name__ == "__main__":
 
     if args.add:
         add_category(args.add, args.budget, args.date)
+
+    if args.copymonth:
+        copy_month(args.copymonth)
 
     elif args.remove:
         remove_category(args.remove, args.date)
