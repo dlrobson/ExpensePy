@@ -86,15 +86,12 @@ def find_budget_month(budget_file_loc, input_date):
         budget_dates.sort(reverse=True)
         for budget_date in budget_dates:
             if budget_date <= input_date:
-                print(budget_date)
                 return budget_date
         # return the first budget if no budget was found.
         if len(budget_dates) != 0:
-            print(budget_dates[-1])
             return budget_dates[-1]
         else:
-            print(input_date)
-            return input_date
+            return None
 
 
 # https://www.datacamp.com/community/tutorials/fuzzy-string-python

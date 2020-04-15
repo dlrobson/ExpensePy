@@ -24,52 +24,69 @@ with open(budget_file_loc, "r") as f:
 
 
 # Add budget type
-def add_category(new_category, budget_val, date):
+def add_category(new_category, budget_val, input_date):
 
     new_category = new_category.lower()
 
-    # Month or year does not exist
     try:
-        if new_category in budget[str(date.year)][str(date.month)]["categories"]:
+        if (
+            new_category
+            in budget[str(input_date.year)][str(input_date.month)]["categories"]
+        ):
             print(
                 "Input category already exists. The category value will be updated with the new budget."
             )
 
         # Month exists, but category does not
-        budget[str(date.year)][str(date.month)]["categories"][new_category] = budget_val
+        budget[str(input_date.year)][str(input_date.month)]["categories"][
+            new_category
+        ] = budget_val
 
+    # Month or year does not exist
     except:
 
-        new_key = {}
-        new_key[new_category] = budget_val
+        budget_date_to_copy = find_budget_month(budget_file_loc, input_date)
 
         month_data = {}
-        month_data["categories"] = new_key
+
+        if budget_date_to_copy == None:
+
+            # Sets the category val to hold what was inputeted
+            new_key = {}
+            new_key[new_category] = budget_val
+
+            month_data["categories"] = new_key
+
+        else:
+
+            month_data["categories"] = budget[str(budget_date_to_copy.year)][
+                str(budget_date_to_copy.month)
+            ]["categories"]
 
         # Year does not exist
-        if str(date.year) not in budget:
+        if str(input_date.year) not in budget:
 
             # Add the year to the json file
             year_data = {}
-            year_data[str(date.month)] = month_data
+            year_data[str(input_date.month)] = month_data
 
-            budget[str(date.year)] = year_data
+            budget[str(input_date.year)] = year_data
 
         # Year exists, but not the month
         else:
 
             # Add the month to the json year
-            budget[str(date.year)][str(date.month)] = month_data
+            budget[str(input_date.year)][str(input_date.month)] = month_data
 
     with open(budget_file_loc, "w") as f:
         f.write(json.dumps(budget, sort_keys=True, indent=4, separators=(",", ": ")))
 
     # Print out new budget for that month
     print(
-        date,
+        input_date,
         ":",
         json.dumps(
-            budget[str(date.year)][str(date.month)]["categories"],
+            budget[str(input_date.year)][str(input_date.month)]["categories"],
             indent=4,
             sort_keys=True,
         ),
@@ -155,11 +172,6 @@ def annual_budget_report(year):
     pass
 
 
-def copy_month(date_to_copy_to):
-    find_budget_month(budget_file_loc, date_to_copy_to)
-
-
-# TODO: choose a date range to apply that budget
 if __name__ == "__main__":
 
     PARSER = ArgumentParser(description="budget.json manager.",)
